@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Productos - Sabores de Pereira</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #FCD116, #CE1126);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #003893;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+
+        .tamaños-container {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .tamaño-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #003893;
+            color: white;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #333;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .btn-danger {
+            background: #CE1126;
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .output-textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 15px;
+            border: 2px solid #003893;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            background: #f9fafb;
+        }
+
+        .suggestions-list {
+            position: absolute;
+            background: white;
+            width: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background: #f3f4f6;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🍔 Generador de Productos</h1>
+
+    <div class="container">
+        <div class="card">
+
+            <div class="form-group">
+                <label>Nombre del Producto</label>
+                <input type="text" id="productName" placeholder="Ej: Chacarero" oninput="mostrarSugerencias()"
+                    autocomplete="off">
+                <div id="suggestionsList" class="suggestions-list"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Sección</label>
+                <select id="section">
+                    <option value="">Selecciona una sección</option>
+                    <option value="hamburguesas">Hamburguesas</option>
+                    <option value="Completos">Completos</option>
+                    <option value="papas">Papas</option>
+                    <option value="as">As</option>
+                    <option value="churrascos">Churrascos</option>
+                    <option value="Nuevos">Nuevos</option>
+                    <option value="bebidas">Bebidas</option>
+
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Ingredientes</label>
+                <textarea id="ingredients"></textarea>
+            </div>
+
+            <div class="section-title">Tamaños y Precios</div>
+            <div id="tamañosContainer"></div>
+            <button class="btn btn-secondary" onclick="agregarTamaño()">+ Agregar Tamaño</button>
+
+            <button class="btn btn-primary" onclick="generarCodigo()">Generar Código</button>
+        </div>
+
+        <div class="card">
+            <h2>Código Generado</h2>
+            <textarea id="outputCode" class="output-textarea" readonly></textarea>
+        </div>
+    </div>
+
+    <script>
+        const productosAuto = {
+            "sola": "2 Aderezos A Elección",
+            "solo Palta": "Doble Porción De Palta",
+            "solo Tomate": "Doble Porción De Tomate",
+            "completo": "Chucrut, Americana, Tomate",
+            "italiano": "Tomate, Palta",
+            "dinámico": "Tomate, Palta, Chucrut, Americana",
+            "chacarero": "Tomate, Porotos Verde, Ají Escabeche",
+            "luco": "Extra Queso Mantecoso",
+            "brasil": "Doble Porcion De Palta Con Extra Queso Mantecoso",
+            "queen": "Cheddar, Lechuga, Tomate, Cebolla, Pepinillos Encurtidos",
+            "champiñón Queso": "Champiñón, Saltados En Wok Con Queso Mantecoso",
+            "antigua": "Americana, Palta",
+            "bacon": "Cheddar, Tocino Ahumado, Aros De Cebolla Crispy",
+            "american Burger": "Cebolla, Pepinillos, Cheddar",
+            "balmaceda": "Cebolla Caramelizada, Cahmpi Salteados En Wok Y Queso Mantecoso",
+            "napolitana": "Tomate Cocido En Wok Con Aeitunas Y Queso Mantecoso",
+            "aros Y Más Papas": "Aritos De Cebolla Crispy Mas Papas Fritas",
+            "salchipapas": "Vienesas Fritas Con Papas Fritas",
+        };
+
+        function capitalizarTexto(texto) {
+            return texto.replace(/\w\S*/g, palabra =>
+                palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase()
+            );
+        }
+
+        function mostrarSugerencias() {
+            const input = document.getElementById("productName");
+            const lista = document.getElementById("suggestionsList");
+            const valor = input.value.toLowerCase().trim();
+
+            lista.innerHTML = "";
+
+            if (!valor) {
+                lista.style.display = "none";
+                return;
+            }
+
+            const coincidencias = Object.keys(productosAuto)
+                .filter(prod => prod.includes(valor));
+
+            coincidencias.forEach(prod => {
+                const div = document.createElement("div");
+                div.className = "suggestion-item";
+                div.textContent = capitalizarTexto(prod);
+                div.onclick = () => seleccionarProducto(prod);
+                lista.appendChild(div);
+            });
+
+            lista.style.display = coincidencias.length ? "block" : "none";
+        }
+
+        function seleccionarProducto(nombre) {
+            document.getElementById("productName").value = capitalizarTexto(nombre);
+            document.getElementById("ingredients").value =
+                capitalizarTexto(productosAuto[nombre]);
+            document.getElementById("suggestionsList").style.display = "none";
+        }
+
+        let contadorTamaños = 0;
+
+        function agregarTamaño() {
+            contadorTamaños++;
+            const container = document.getElementById("tamañosContainer");
+            const div = document.createElement("div");
+            div.className = "tamaño-item";
+            div.innerHTML = `
+                <input type="text" placeholder="Ej: Normal">
+                <input type="number" placeholder="Precio">
+                <button class="btn btn-danger" onclick="this.parentElement.remove()">Eliminar</button>
+            `;
+            container.appendChild(div);
+        }
+
+        let codigoAcumulado = "";
+
+
+        function generarCodigo() {
+            const nombre = document.getElementById("productName").value.trim();
+            const ingredientes = document.getElementById("ingredients").value.trim();
+            const seccion = document.getElementById("section").value;
+
+            if (!nombre || !ingredientes || !seccion) {
+                alert("Falta nombre, ingredientes o sección");
+                return;
+            }
+
+            const tamaños = document.querySelectorAll(".tamaño-item");
+            if (tamaños.length === 0) {
+                alert("Agrega al menos un tamaño");
+                return;
+            }
+
+            // clave corta para ids (dinámico -> diná, italiano -> ital)
+            const clave = nombre
+                .toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .substring(0, 4);
+
+            let opcionesHTML = "";
+
+            tamaños.forEach((item, index) => {
+                const size = item.querySelector('input[type="text"]').value;
+                const price = item.querySelector('input[type="number"]').value;
+                if (!size || !price) return;
+
+                const id = `${seccion}-${clave}-${index}`;
+                const name = `${seccion}-${clave}`;
+
+                opcionesHTML += `
+        <input type="radio"
+            id="${id}"
+            name="${name}"
+            value="${size}|${price}"
+            onclick="addProduct('${nombre}', '${name}')">
+        <label for="${id}">
+            ${size} <span>$${price}</span>
+        </label>
+        `;
+            });
+
+            const bloque = `
+<!-- ${nombre.toUpperCase()} -->
+<div class="card">
+    <h3>${nombre}</h3>
+    <div class="ingredients">
+        ${ingredientes}
+    </div>
+    <div class="options">
+${opcionesHTML}
+    </div>
+</div>
+
+`;
+
+            // 🔥 ACUMULAR (NO REEMPLAZAR)
+            codigoAcumulado += bloque;
+            document.getElementById("outputCode").value = codigoAcumulado.trim();
+        }
+
+
+        agregarTamaño();
+    </script>
+
+</body>
+
+</html>
