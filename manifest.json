@@ -1,7 +1,8 @@
 {
-  "name": "Sabores de Pereira",
-  "short_name": "Sabores",
-  "start_url": "/sabores-admin/index.html",
+  "name": "DaGusto - Panel",
+  "short_name": "DaGusto",
+  "start_url": "/dagusto/index.html",
+  "scope": "/dagusto/",
   "display": "standalone",
   "background_color": "#111827",
   "theme_color": "#16a34a",
